@@ -29,6 +29,9 @@ class NeuralLayer:
                   layer will simply be a matrix multiplication operation.
                 '''
                 
+                self.input_length = input_length
+                self.neuron_num = neuron_num
+                
                 self.weights = np.random.rand(input_length,neuron_num)
                 self.bias = np.random.rand(1,neuron_num)
                 self.layer_mat = np.vstack((self.weights,self.bias))
@@ -53,10 +56,14 @@ class NeuralLayer:
         def sigmoid_prime(self,x):
                 '''
                   Returns a (1 x n) numpy array containing the partial derivatives of
-                  the sigmoid function with respect to each parameter
+                  the sigmoid function corresponding to each element in x
+
+                  f     : (1 x n)
+                  f_mat : (n x n) 
                 '''
-                f = sigmoid(x)		
-                return np.multiply(f,(1-f_mat))
+                f = self.sigmoid(x)
+                f_mat = np.multiply(1-f,np.identity(self.neuron_num))
+                return np.matmul(f,f_mat)
 
         def feedforward(self,inputs):
                 # The actual work of taking in the inputs, then computing and propagating
@@ -90,11 +97,36 @@ class OneLayerNN(NeuralLayer):
                         for x,y in zip(data,true_values):
                                 h1 = self.layer1.feedforward(x)
                                 output = self.output_layer.feedforward(h1)
-                                print('h1:')
-                                print(h1)
-                                print('output:')
-                                print(output)
+
+                                # Notation of variables
+                                #
+                                # dA_dB : del A / del B
+                                # H     : output of first layer
+                                # w_1   : weights of layer 1
+
+                                # loss wrt output value
+                                dL_dOUT = -2*(y-output)
+
+                                # output value wrt to output layer weights & bias
+                                dOUT_dW_out = np.multiply(np.hstack((h1,np.array([1]))),
+                                        self.output_layer.sigmoid_prime(output))
+                                print('dOUT_dW_out: \n',dOUT_dW_out)
+                                print()
+                                
+                                # output value wrt to H
+                                dOUT_dH = np.multiply(self.output_layer.weights.T,
+                                        self.output_layer.sigmoid_prime(output))
+                                print('dOUT_dH: \n',dOUT_dH)
+                                print()
+
+                                # H wrt to layer1 weights and biases
+                                dH_dW_1 = np.zeros(shape=(self.layer1.neuron_num,
+                                                          self.layer1.layer_mat.size))
+                                # loop across every element and calculate partial derivative?
+                                print(dH_dW_1)
+
                                 break
+                        break
 
 
                 
